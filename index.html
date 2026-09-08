@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arabic-Roman Number Converter</title>
 
-    <!-- Emoji Favicon (Change the 🏛️ emoji here anytime!) -->
+    <!-- Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
 
     <!-- Google Font: JetBrains Mono for crisp, fixed-width numbers everywhere -->
@@ -159,7 +159,7 @@
         }
 
         /* ==========================================================================
-           4. FORM INPUTS & RESULTS (Monospace)
+           4. FORM INPUTS & RESULTS
            ========================================================================== */
         label {
             display: block;
@@ -195,16 +195,46 @@
             font-weight: 700;
         }
 
-        /* Overflow protection for long Roman result strings */
+        /* Result container layout with copy action support */
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 0.25rem;
+            gap: 0.5rem;
+        }
+
         .result-value {
             font-size: clamp(1.4rem, 5vw, 2.25rem);
             font-weight: 800;
             color: var(--primary);
-            margin-top: 0.25rem;
             min-height: 40px;
             word-break: break-all;
             overflow-wrap: anywhere;
             line-height: 1.2;
+        }
+
+        /* Copy Button Style */
+        .copy-btn {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
         }
 
         /* ==========================================================================
@@ -215,6 +245,13 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.5rem;
+        }
+
+        /* Rearranged action controls group (Delete & Clear side by side) */
+        .chip-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .clear-btn {
@@ -228,6 +265,22 @@
 
         .clear-btn:hover {
             text-decoration: underline;
+        }
+
+        .backspace-btn {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .backspace-btn:hover {
+            background-color: var(--border-color);
         }
 
         .chip-container {
@@ -303,29 +356,6 @@
         /* ==========================================================================
            6. FOOTER STYLES
            ========================================================================== */
-        .card-footer-flex {
-            margin-top: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .backspace-btn {
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.5rem 0.85rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .backspace-btn:hover {
-            background-color: var(--border-color);
-        }
-
         footer {
             width: 100%;
             text-align: center;
@@ -361,7 +391,10 @@
             
             <div style="margin-top: 1rem;">
                 <span class="result-label">Result:</span>
-                <div id="arabicResult" class="result-value font-mono-num">MDCCCLXXXVIII</div>
+                <div class="result-row">
+                    <div id="arabicResult" class="result-value font-mono-num">MDCCCLXXXVIII</div>
+                    <button onclick="copyToClipboard('arabicResult', this)" class="copy-btn font-sans">📋 Copy</button>
+                </div>
             </div>
         </div>
 
@@ -369,7 +402,11 @@
         <div class="card">
             <div class="chip-display-header">
                 <label style="margin-bottom: 0;">Roman Numerals (Tap chips to build)</label>
-                <button onclick="clearChips()" class="clear-btn">Clear Sequence</button>
+                <!-- Rearranged controls: Delete Last and Clear Sequence grouped together -->
+                <div class="chip-actions-group font-sans">
+                    <button onclick="backspaceRoman()" class="backspace-btn">⌫ Delete</button>
+                    <button onclick="clearChips()" class="clear-btn">Clear</button>
+                </div>
             </div>
 
             <!-- Roman Chips Input Area -->
@@ -388,12 +425,12 @@
                 <button onclick="appendRoman('I')" class="chip-btn font-mono-num">I <span class="chip-sub">1</span></button>
             </div>
             
-            <div class="card-footer-flex">
-                <div>
-                    <span class="result-label">Converted Value:</span>
+            <div style="margin-top: 1rem;">
+                <span class="result-label">Converted Value:</span>
+                <div class="result-row">
                     <div id="romanResult" class="result-value font-mono-num" style="font-size: 1.75rem;">0</div>
+                    <button onclick="copyToClipboard('romanResult', this)" class="copy-btn font-sans">📋 Copy</button>
                 </div>
-                <button onclick="backspaceRoman()" class="backspace-btn">⌫ Delete Last</button>
             </div>
         </div>
 
@@ -419,6 +456,20 @@
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('themeIcon').textContent = '☀️';
+        }
+
+        // --- Copy to Clipboard Helper ---
+        function copyToClipboard(elementId, btnElement) {
+            const textToCopy = document.getElementById(elementId).textContent;
+            if (!textToCopy || textToCopy === "---" || textToCopy === "Invalid Roman Numeral") return;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = btnElement.textContent;
+                btnElement.textContent = "✅ Copied!";
+                setTimeout(() => {
+                    btnElement.textContent = originalText;
+                }, 1500);
+            });
         }
 
         // --- Conversion Engines ---
