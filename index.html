@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arabic-Roman Number Converter</title>
 
-    <!-- Google Font: Libre Baskerville for readable Roman numerals across mobile and desktop -->
+    <!-- Google Font: JetBrains Mono for crisp, fixed-width Roman numerals -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
     
     <style>
         /* ==========================================================================
-           1. COLOR SCHEME & THEME VARIABLES (Edit colors here)
+           1. COLOR SCHEME & THEME VARIABLES
            ========================================================================== */
         :root {
             /* Light Mode Palette */
@@ -51,7 +51,7 @@
         }
 
         /* ==========================================================================
-           2. TYPOGRAPHY & BASE LAYOUT (Edit global fonts & layout here)
+           2. TYPOGRAPHY & BASE LAYOUT
            ========================================================================== */
         * {
             box-sizing: border-box;
@@ -62,7 +62,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            /* Native OS System Font for general UI readability */
+            /* Native OS System Font for UI text */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
@@ -72,18 +72,19 @@
             padding: 1rem;
         }
 
-        /* Dedicated font class for Roman Numerals using Libre Baskerville */
+        /* Monospace font class for clean fixed-width Roman Numerals */
         .font-roman {
-            font-family: 'Libre Baskerville', Georgia, serif;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.02em;
         }
 
-        /* Enforce system OS font for generic UI text */
+        /* Enforce system OS font for generic UI elements */
         .font-sans {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         /* ==========================================================================
-           3. CONTAINER & HEADER COMPONENT STYLES
+           3. CONTAINER & HEADER STYLES
            ========================================================================== */
         header {
             width: 100%;
@@ -132,6 +133,8 @@
             padding: 1.25rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             transition: background-color 0.3s, border-color 0.3s;
+            /* Prevents long strings from breaking card boundaries */
+            overflow: hidden; 
         }
 
         .banner {
@@ -154,7 +157,7 @@
         }
 
         /* ==========================================================================
-           4. FORM INPUTS & CONVERTED RESULT DISPLAY
+           4. FORM INPUTS & FOOLPROOF RESULT DISPLAY
            ========================================================================== */
         label {
             display: block;
@@ -190,16 +193,23 @@
             font-weight: 700;
         }
 
+        /* FOOLPROOF OVERFLOW PROTECTION FOR LONG NUMERALS (e.g. MDCCCLXXXVIII) */
         .result-value {
-            font-size: 2.25rem;
-            font-weight: 700;
+            /* Fluid sizing: scales smoothly between 1.5rem on small phones to 2.25rem on desktop */
+            font-size: clamp(1.4rem, 5vw, 2.25rem);
+            font-weight: 800;
             color: var(--primary);
             margin-top: 0.25rem;
             min-height: 40px;
+            
+            /* Wrapping controls to guarantee zero horizontal overflow */
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            line-height: 1.2;
         }
 
         /* ==========================================================================
-           5. ROMAN CHIP BUILDER & PALETTE STYLES (Edit chip sizes here)
+           5. ROMAN CHIP BUILDER & PALETTE STYLES
            ========================================================================== */
         .chip-display-header {
             display: flex;
@@ -221,7 +231,7 @@
             text-decoration: underline;
         }
 
-        /* Display area where tapped chips appear */
+        /* Display area for tapped chips */
         .chip-container {
             width: 100%;
             min-height: 64px;
@@ -230,13 +240,15 @@
             border-radius: 12px;
             padding: 0.75rem;
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Allows chips to cleanly wrap to next line if long */
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             margin-bottom: 1rem;
+            max-height: 180px;
+            overflow-y: auto; /* Adds subtle vertical scroll if sequence gets extremely long */
         }
 
-        /* Placeholder text using default native OS font */
+        /* Native OS font for placeholder prompt */
         .placeholder-text {
             color: var(--text-muted);
             font-size: 0.875rem;
@@ -244,18 +256,18 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Selected chip appearance in display box */
+        /* Individual selected chip */
         .chip-item {
-            padding: 0.35rem 0.75rem;
+            padding: 0.25rem 0.55rem;
             background-color: var(--primary-light);
             border: 1px solid var(--banner-border);
             color: var(--primary);
             border-radius: 8px;
-            font-size: 1.5rem; /* Increased size for mobile clarity */
+            font-size: clamp(1.1rem, 3.5vw, 1.35rem);
             font-weight: 700;
         }
 
-        /* Grid for tapping chips (M, D, C, L, X, V, I) */
+        /* Grid layout for the 7 Roman numeral buttons */
         .palette-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -269,7 +281,7 @@
             color: var(--primary);
             padding: 0.75rem 0;
             font-weight: 700;
-            font-size: 1.35rem; /* Increased button font size for ease of tapping */
+            font-size: clamp(1rem, 3.5vw, 1.25rem);
             border-radius: 12px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
@@ -287,9 +299,9 @@
             transform: scale(0.95);
         }
 
-        /* Subscript numerical value under the chip letter */
+        /* Subscript numbers below chip letters */
         .chip-sub {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: normal;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             opacity: 0.75;
@@ -357,7 +369,7 @@
             
             <div style="margin-top: 1rem;">
                 <span class="result-label">Result:</span>
-                <div id="arabicResult" class="result-value font-roman">MMXXVI</div>
+                <div id="arabicResult" class="result-value font-roman">MDCCCLXXXVIII</div>
             </div>
         </div>
 
@@ -515,8 +527,8 @@
             }
         }
 
-        // Run default state setup on load
-        document.getElementById('arabicInput').value = 2026;
+        // Run default state setup on load (Set to 1888 to showcase the longest character sequence)
+        document.getElementById('arabicInput').value = 1888;
         convertArabicToRoman();
     </script>
 </body>
