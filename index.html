@@ -123,6 +123,14 @@
 
         function romanToArab(str) {
             str = str.toUpperCase();
+            if (!str) return 0;
+
+            // Strict validation regex for standard Roman numerals 1 - 3999
+            const romanRegex = /^(M{0,3})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
+            if (!romanRegex.test(str)) {
+                return "Invalid Roman Numeral";
+            }
+
             let total = 0;
             for (let i = 0; i < str.length; i++) {
                 let current = romanMap[str[i]];
@@ -134,7 +142,7 @@
                     total += current;
                 }
             }
-            return isNaN(total) ? 0 : total;
+            return total;
         }
 
         // --- UI Interactions ---
@@ -180,9 +188,18 @@
                 container.appendChild(chip);
             });
 
-            // Calculate value
+            // Calculate value or show error format
             const romanString = currentChips.join('');
-            document.getElementById('romanResult').textContent = romanToArab(romanString);
+            const result = romanToArab(romanString);
+            
+            const resultEl = document.getElementById('romanResult');
+            resultEl.textContent = result;
+            
+            if (result === "Invalid Roman Numeral") {
+                resultEl.className = "text-xl font-bold text-rose-500 mt-1";
+            } else {
+                resultEl.className = "text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-1";
+            }
         }
 
         // Run default state setup on load
