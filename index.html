@@ -195,13 +195,13 @@
             font-weight: 700;
         }
 
-        /* Result container layout with copy action support */
+      /* Result container layout with copy action support */
         .result-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 0.25rem;
-            gap: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center; /* Change to 'flex-start' for top alignment, or 'center' for middle */
+        margin-top: 0.25rem;
+        gap: 0.5rem;
         }
 
         .result-value {
@@ -226,7 +226,6 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
             white-space: nowrap;
-            margin-bottom: 4px;
         }
 
         .copy-btn:hover {
