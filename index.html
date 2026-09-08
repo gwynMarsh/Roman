@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arabic-Roman Number Converter</title>
 
-    <!-- Google Font: JetBrains Mono for crisp, fixed-width Roman numerals -->
+    <!-- Emoji Favicon (Change the 🏛️ emoji here anytime!) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+
+    <!-- Google Font: JetBrains Mono for crisp, fixed-width numbers everywhere -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
     
     <style>
         /* ==========================================================================
-           1. COLOR SCHEME & THEME VARIABLES
+           1. COLOR SCHEME & THEME VARIABLES (Edit colors here)
            ========================================================================== */
         :root {
             /* Light Mode Palette */
@@ -62,7 +65,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            /* Native OS System Font for UI text */
+            /* Native OS System Font for general UI labels */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
@@ -72,13 +75,13 @@
             padding: 1rem;
         }
 
-        /* Monospace font class for clean fixed-width Roman Numerals */
-        .font-roman {
+        /* Monospace font class used for ALL numbers (Arabic inputs, Roman output, chips, values) */
+        .font-mono-num {
             font-family: 'JetBrains Mono', monospace;
             letter-spacing: -0.02em;
         }
 
-        /* Enforce system OS font for generic UI elements */
+        /* Enforce system OS font for generic UI element text */
         .font-sans {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
@@ -133,7 +136,6 @@
             padding: 1.25rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             transition: background-color 0.3s, border-color 0.3s;
-            /* Prevents long strings from breaking card boundaries */
             overflow: hidden; 
         }
 
@@ -157,7 +159,7 @@
         }
 
         /* ==========================================================================
-           4. FORM INPUTS & FOOLPROOF RESULT DISPLAY
+           4. FORM INPUTS & RESULTS (Monospace)
            ========================================================================== */
         label {
             display: block;
@@ -193,16 +195,13 @@
             font-weight: 700;
         }
 
-        /* FOOLPROOF OVERFLOW PROTECTION FOR LONG NUMERALS (e.g. MDCCCLXXXVIII) */
+        /* Overflow protection for long Roman result strings */
         .result-value {
-            /* Fluid sizing: scales smoothly between 1.5rem on small phones to 2.25rem on desktop */
             font-size: clamp(1.4rem, 5vw, 2.25rem);
             font-weight: 800;
             color: var(--primary);
             margin-top: 0.25rem;
             min-height: 40px;
-            
-            /* Wrapping controls to guarantee zero horizontal overflow */
             word-break: break-all;
             overflow-wrap: anywhere;
             line-height: 1.2;
@@ -231,7 +230,6 @@
             text-decoration: underline;
         }
 
-        /* Display area for tapped chips */
         .chip-container {
             width: 100%;
             min-height: 64px;
@@ -240,23 +238,20 @@
             border-radius: 12px;
             padding: 0.75rem;
             display: flex;
-            flex-wrap: wrap; /* Allows chips to cleanly wrap to next line if long */
+            flex-wrap: wrap;
             align-items: center;
             gap: 0.4rem;
             margin-bottom: 1rem;
             max-height: 180px;
-            overflow-y: auto; /* Adds subtle vertical scroll if sequence gets extremely long */
+            overflow-y: auto;
         }
 
-        /* Native OS font for placeholder prompt */
         .placeholder-text {
             color: var(--text-muted);
             font-size: 0.875rem;
             font-style: italic;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Individual selected chip */
         .chip-item {
             padding: 0.25rem 0.55rem;
             background-color: var(--primary-light);
@@ -267,14 +262,12 @@
             font-weight: 700;
         }
 
-        /* Grid layout for the 7 Roman numeral buttons */
         .palette-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 0.35rem;
         }
 
-        /* Interactive chip button */
         .chip-btn {
             background-color: var(--primary-light);
             border: none;
@@ -299,7 +292,6 @@
             transform: scale(0.95);
         }
 
-        /* Subscript numbers below chip letters */
         .chip-sub {
             font-size: 9px;
             font-weight: normal;
@@ -365,11 +357,11 @@
         <!-- Section 1: Arabic to Roman -->
         <div class="card">
             <label for="arabicInput">Arabic Number (1 - 3999)</label>
-            <input type="number" id="arabicInput" placeholder="e.g., 2026" min="1" max="3999" oninput="convertArabicToRoman()">
+            <input type="number" id="arabicInput" class="font-mono-num" placeholder="e.g., 2026" min="1" max="3999" oninput="convertArabicToRoman()">
             
             <div style="margin-top: 1rem;">
                 <span class="result-label">Result:</span>
-                <div id="arabicResult" class="result-value font-roman">MDCCCLXXXVIII</div>
+                <div id="arabicResult" class="result-value font-mono-num">MDCCCLXXXVIII</div>
             </div>
         </div>
 
@@ -382,24 +374,24 @@
 
             <!-- Roman Chips Input Area -->
             <div id="chipDisplay" class="chip-container">
-                <span class="placeholder-text" id="placeholderText">Tap chips below...</span>
+                <span class="placeholder-text font-sans" id="placeholderText">Tap chips below...</span>
             </div>
 
             <!-- Chips Palette -->
             <div class="palette-grid">
-                <button onclick="appendRoman('M')" class="chip-btn font-roman">M <span class="chip-sub">1000</span></button>
-                <button onclick="appendRoman('D')" class="chip-btn font-roman">D <span class="chip-sub">500</span></button>
-                <button onclick="appendRoman('C')" class="chip-btn font-roman">C <span class="chip-sub">100</span></button>
-                <button onclick="appendRoman('L')" class="chip-btn font-roman">L <span class="chip-sub">50</span></button>
-                <button onclick="appendRoman('X')" class="chip-btn font-roman">X <span class="chip-sub">10</span></button>
-                <button onclick="appendRoman('V')" class="chip-btn font-roman">V <span class="chip-sub">5</span></button>
-                <button onclick="appendRoman('I')" class="chip-btn font-roman">I <span class="chip-sub">1</span></button>
+                <button onclick="appendRoman('M')" class="chip-btn font-mono-num">M <span class="chip-sub">1000</span></button>
+                <button onclick="appendRoman('D')" class="chip-btn font-mono-num">D <span class="chip-sub">500</span></button>
+                <button onclick="appendRoman('C')" class="chip-btn font-mono-num">C <span class="chip-sub">100</span></button>
+                <button onclick="appendRoman('L')" class="chip-btn font-mono-num">L <span class="chip-sub">50</span></button>
+                <button onclick="appendRoman('X')" class="chip-btn font-mono-num">X <span class="chip-sub">10</span></button>
+                <button onclick="appendRoman('V')" class="chip-btn font-mono-num">V <span class="chip-sub">5</span></button>
+                <button onclick="appendRoman('I')" class="chip-btn font-mono-num">I <span class="chip-sub">1</span></button>
             </div>
             
             <div class="card-footer-flex">
                 <div>
                     <span class="result-label">Converted Value:</span>
-                    <div id="romanResult" class="result-value font-sans" style="font-size: 1.75rem;">0</div>
+                    <div id="romanResult" class="result-value font-mono-num" style="font-size: 1.75rem;">0</div>
                 </div>
                 <button onclick="backspaceRoman()" class="backspace-btn">⌫ Delete Last</button>
             </div>
@@ -500,14 +492,14 @@
             container.innerHTML = '';
             
             if (currentChips.length === 0) {
-                container.innerHTML = '<span class="placeholder-text" id="placeholderText">Tap chips below...</span>';
+                container.innerHTML = '<span class="placeholder-text font-sans" id="placeholderText">Tap chips below...</span>';
                 document.getElementById('romanResult').textContent = '0';
                 return;
             }
 
             currentChips.forEach((char) => {
                 const chip = document.createElement('span');
-                chip.className = 'chip-item font-roman';
+                chip.className = 'chip-item font-mono-num';
                 chip.textContent = char;
                 container.appendChild(chip);
             });
@@ -521,13 +513,15 @@
             if (result === "Invalid Roman Numeral") {
                 resultEl.style.color = "var(--danger)";
                 resultEl.style.fontSize = "1.25rem";
+                resultEl.className = "result-value font-sans"; 
             } else {
                 resultEl.style.color = "var(--primary)";
                 resultEl.style.fontSize = "1.75rem";
+                resultEl.className = "result-value font-mono-num"; 
             }
         }
 
-        // Run default state setup on load (Set to 1888 to showcase the longest character sequence)
+        // Run default state setup on load
         document.getElementById('arabicInput').value = 1888;
         convertArabicToRoman();
     </script>
