@@ -1,0 +1,384 @@
+        /* ==========================================================================
+           1. COLOR SCHEME & THEME VARIABLES
+           ========================================================================== */
+        :root {
+            /* Light Mode Palette */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --input-bg: #f1f5f9;
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --accent-hover: #c7d2fe;
+            --danger: #ef4444;
+        }
+
+        .dark {
+            /* Dark Mode Palette */
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+            --primary: #818cf8;
+            --primary-light: rgba(99, 102, 241, 0.2);
+            --accent-hover: rgba(99, 102, 241, 0.4);
+            --danger: #f87171;
+        }
+
+        /* ==========================================================================
+           2. TYPOGRAPHY & BASE LAYOUT
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background-color 0.3s, color 0.3s;
+            padding: 1rem;
+        }
+
+        .font-mono-num {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.02em;
+        }
+
+        .font-sans {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* ==========================================================================
+           3. CONTAINER & HEADER STYLES
+           ========================================================================== */
+        header {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .theme-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.05);
+        }
+
+        main {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: background-color 0.3s, border-color 0.3s;
+            overflow: hidden; 
+        }
+
+        /* Clean, borderless banner on main background */
+        .banner {
+            background-color: transparent;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .banner h2 {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .banner p {
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Segmented Control Tab Navigation */
+        .tab-container {
+            display: flex;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 0.25rem;
+            gap: 0.25rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.6rem 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hide inactive tab contents */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ==========================================================================
+           4. FORM INPUTS & RESULTS
+           ========================================================================== */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            font-size: 1.5rem;
+            font-weight: 600;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.25rem;
+            gap: 0.5rem;
+        }
+
+        .result-value {
+            font-size: clamp(1.4rem, 5vw, 2.25rem);
+            font-weight: 800;
+            color: var(--primary);
+            min-height: 40px;
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            line-height: 1.2;
+        }
+
+        .copy-btn {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ==========================================================================
+           5. ROMAN CHIP BUILDER & PALETTE STYLES
+           ========================================================================== */
+        .chip-display-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .chip-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover {
+            text-decoration: underline;
+        }
+
+        .backspace-btn {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .backspace-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .chip-container {
+            width: 100%;
+            min-height: 64px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+
+        .chip-item {
+            padding: 0.25rem 0.55rem;
+            background-color: var(--primary-light);
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            border-radius: 8px;
+            font-size: clamp(1.1rem, 3.5vw, 1.35rem);
+            font-weight: 700;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.35rem;
+        }
+
+        .chip-btn {
+            background-color: var(--primary-light);
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            padding: 0.75rem 0;
+            font-weight: 700;
+            font-size: clamp(1rem, 3.5vw, 1.25rem);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chip-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .chip-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chip-sub {
+            font-size: 11px;
+            font-weight: normal;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            opacity: 0.75;
+            margin-top: 2px;
+        }
+
+        .copy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        :is(button, input):focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
+
+        /* ==========================================================================
+           6. FOOTER STYLES
+           ========================================================================== */
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
