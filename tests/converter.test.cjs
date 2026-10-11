@@ -5,11 +5,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-// Exercise the actual script shipped in index.html, not a duplicate implementation.
+// Test conversion functions without a browser or a duplicate implementation.
+function loadConverter() {
+  const context = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'converter.js'), 'utf8'), context, { filename: 'converter.js' });
+  return { run: expr => vm.runInContext(expr, context) };
+}
+
+// Exercise the actual scripts in the order shipped in index.html.
 function loadApp() {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-  const script = html.match(/<script>([\s\S]*?)<\/script>/);
-  assert.ok(script, 'Inline application script exists');
+  const scripts = [...html.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g)].map(match => match[1]);
+  assert.deepEqual(scripts, ['converter.js', 'app.js'], 'Conversion functions load before the UI');
   const copyButtons = { arabicResult: { disabled: true }, romanResult: { disabled: true } };
   const elements = {};
   for (const id of ['arabicInput', 'arabicResult', 'arabicError', 'romanResult', 'chipDisplay', 'themeIcon']) {
@@ -17,6 +24,12 @@ function loadApp() {
       validity: { valid: true }, setAttribute() {}, appendChild() {},
       parentElement: { querySelector: () => copyButtons[id] } };
   }
+  // Browser input.value coerces assigned numbers to strings.
+  let inputValue = '';
+  Object.defineProperty(elements.arabicInput, 'value', {
+    get: () => inputValue,
+    set: value => { inputValue = String(value); }
+  });
   const document = {
     getElementById: id => elements[id],
     documentElement: { classList: { add() {}, contains: () => false, toggle() {} } },
@@ -28,12 +41,14 @@ function loadApp() {
     window: { matchMedia: () => ({ matches: false }) },
     navigator: { clipboard: { writeText: async () => {} } }, setTimeout
   });
-  vm.runInContext(script[1], context, { filename: 'index.html' });
+  for (const filename of scripts) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', filename), 'utf8'), context, { filename });
+  }
   return { context, elements, copyButtons, run: expr => vm.runInContext(expr, context) };
 }
 
 test('every number 1–3999 round-trips and yields a canonical Roman numeral', () => {
-  const app = loadApp();
+  const app = loadConverter();
   const canonical = /^(?=.+$)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
   for (let n = 1; n <= 3999; n++) {
     const roman = app.run('arabicToRoman(' + n + ')');
@@ -43,14 +58,14 @@ test('every number 1–3999 round-trips and yields a canonical Roman numeral', (
 });
 
 test('important subtractive forms and range endpoints', () => {
-  const app = loadApp();
+  const app = loadConverter();
   for (const [n, expected] of [[1,'I'],[4,'IV'],[9,'IX'],[40,'XL'],[49,'XLIX'],[90,'XC'],[400,'CD'],[900,'CM'],[944,'CMXLIV'],[1888,'MDCCCLXXXVIII'],[2026,'MMXXVI'],[3999,'MMMCMXCIX']]) {
     assert.equal(app.run('arabicToRoman(' + n + ')'), expected);
   }
 });
 
 test('malformed Roman numerals are rejected', () => {
-  const app = loadApp();
+  const app = loadConverter();
   for (const input of ['IIII', 'VV', 'LL', 'DD', 'IC', 'IL', 'XD', 'XM', 'VX', 'IIV', 'XXC', 'MMMM', 'ABC', 'IVIV']) {
     assert.equal(app.run('romanToArab(' + JSON.stringify(input) + ')'), 'Invalid Roman Numeral', input);
   }
