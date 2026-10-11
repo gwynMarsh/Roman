@@ -375,11 +375,17 @@
         }
 
         .chip-sub {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: normal;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             opacity: 0.75;
             margin-top: 2px;
+        }
+
+        .copy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        :is(button, input):focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
         }
 
         /* ==========================================================================
@@ -399,7 +405,7 @@
     <!-- Header & Theme Toggle -->
     <header>
         <h1>🏛️ Roman Converter</h1>
-        <button onclick="toggleDarkMode()" class="theme-btn">
+        <button onclick="toggleDarkMode()" class="theme-btn" aria-label="Toggle dark mode" aria-pressed="false">
             <span id="themeIcon">🌙</span>
         </button>
     </header>
@@ -413,7 +419,7 @@
         </div>
 
         <!-- Tab Navigation Bar -->
-        <nav class="tab-container">
+        <nav class="tab-container" aria-label="Conversion direction">
             <button class="tab-btn active" onclick="switchTab('arabicTab', this)">15 → XV</button>
             <button class="tab-btn" onclick="switchTab('romanTab', this)">XV → 15</button>
         </nav>
@@ -422,13 +428,14 @@
         <div id="arabicTab" class="tab-content active">
             <div class="card">
                 <label for="arabicInput">Arabic Number (1 - 3999)</label>
-                <input type="number" id="arabicInput" class="font-mono-num" placeholder="e.g., 2026" min="1" max="3999" oninput="convertArabicToRoman()">
+                <input type="number" id="arabicInput" class="font-mono-num" placeholder="e.g., 2026" min="1" max="3999" step="1" aria-describedby="arabicError" oninput="convertArabicToRoman()">
+                <p id="arabicError" role="status" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem;"></p>
                 
                 <div style="margin-top: 1rem;">
                     <span class="result-label">Result:</span>
                     <div class="result-row">
-                        <div id="arabicResult" class="result-value font-mono-num">MDCCCLXXXVIII</div>
-                        <button onclick="copyToClipboard('arabicResult', this)" class="copy-btn font-sans">📋 Copy</button>
+                        <div id="arabicResult" class="result-value font-mono-num" aria-live="polite">MDCCCLXXXVIII</div>
+                        <button onclick="copyToClipboard('arabicResult', this)" class="copy-btn font-sans" disabled>📋 Copy</button>
                     </div>
                 </div>
             </div>
@@ -464,8 +471,8 @@
                 <div style="margin-top: 1rem;">
                     <span class="result-label">Converted Value:</span>
                     <div class="result-row">
-                        <div id="romanResult" class="result-value font-mono-num" style="font-size: 1.75rem;">0</div>
-                        <button onclick="copyToClipboard('romanResult', this)" class="copy-btn font-sans">📋 Copy</button>
+                        <div id="romanResult" class="result-value font-mono-num" style="font-size: 1.75rem;" aria-live="polite">0</div>
+                        <button onclick="copyToClipboard('romanResult', this)" class="copy-btn font-sans" disabled>📋 Copy</button>
                     </div>
                 </div>
             </div>
@@ -500,26 +507,32 @@
             html.classList.toggle('dark');
             const isDark = html.classList.contains('dark');
             document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+            document.querySelector('.theme-btn').setAttribute('aria-pressed', String(isDark));
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
 
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('themeIcon').textContent = '☀️';
+            document.querySelector('.theme-btn').setAttribute('aria-pressed', 'true');
         }
 
         // --- Copy to Clipboard Helper ---
-        function copyToClipboard(elementId, btnElement) {
+        async function copyToClipboard(elementId, btnElement) {
+            if (btnElement.disabled) return;
             const textToCopy = document.getElementById(elementId).textContent;
-            if (!textToCopy || textToCopy === "---" || textToCopy === "Invalid Roman Numeral") return;
-
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const originalText = btnElement.textContent;
+            try {
+                await navigator.clipboard.writeText(textToCopy);
                 btnElement.textContent = "✅ Copied!";
-                setTimeout(() => {
-                    btnElement.textContent = originalText;
-                }, 1500);
-            });
+                setTimeout(() => { btnElement.textContent = "📋 Copy"; }, 1500);
+            } catch (error) {
+                btnElement.textContent = "Copy failed";
+                setTimeout(() => { btnElement.textContent = "📋 Copy"; }, 2000);
+            }
+        }
+
+        function setCopyEnabled(resultId, enabled) {
+            document.getElementById(resultId).parentElement.querySelector('.copy-btn').disabled = !enabled;
         }
 
         // --- Conversion Engines ---
@@ -564,16 +577,20 @@
 
         // --- UI Interactions ---
         function convertArabicToRoman() {
-            const val = parseInt(document.getElementById('arabicInput').value);
+            const input = document.getElementById('arabicInput');
+            const raw = input.value.trim();
+            const num = Number(raw);
             const resEl = document.getElementById('arabicResult');
-            if (!val || val < 1) {
-                resEl.textContent = "---";
-                return;
-            }
-            resEl.textContent = arabicToRoman(val);
+            const errorEl = document.getElementById('arabicError');
+            const valid = raw !== '' && Number.isInteger(num) && num >= 1 && num <= 3999 && input.validity.valid;
+            resEl.textContent = valid ? arabicToRoman(num) : '---';
+            errorEl.textContent = raw && !valid ? 'Enter a whole number from 1 to 3999.' : '';
+            input.setAttribute('aria-invalid', String(raw !== '' && !valid));
+            setCopyEnabled('arabicResult', valid);
         }
 
         function appendRoman(char) {
+            if (currentChips.length >= 15) return;
             currentChips.push(char);
             updateChipDisplay();
         }
@@ -595,6 +612,7 @@
             if (currentChips.length === 0) {
                 container.innerHTML = '<span class="placeholder-text font-sans" id="placeholderText">Tap chips below...</span>';
                 document.getElementById('romanResult').textContent = '0';
+                setCopyEnabled('romanResult', false);
                 return;
             }
 
@@ -610,6 +628,7 @@
             
             const resultEl = document.getElementById('romanResult');
             resultEl.textContent = result;
+            setCopyEnabled("romanResult", typeof result === "number" && result > 0);
             
             if (result === "Invalid Roman Numeral") {
                 resultEl.style.color = "var(--danger)";
