@@ -3,29 +3,29 @@
            ========================================================================== */
         :root {
             /* Light Mode Palette */
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #cbd5e1;
-            --input-bg: #f1f5f9;
-            --primary: #4f46e5;
-            --primary-light: #e0e7ff;
-            --accent-hover: #c7d2fe;
+            --bg-color: #F7F4ED;
+            --card-bg: #FFFDF8;
+            --text-main: #302B23;
+            --text-muted: #746B5D;
+            --border-color: #D8D0C2;
+            --input-bg: #EFEAE0;
+            --primary: #856019;
+            --primary-light: #F2E6C9;
+            --accent-hover: #EFE5D1;
             --danger: #ef4444;
         }
 
         .dark {
             /* Dark Mode Palette */
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --input-bg: #0f172a;
-            --primary: #818cf8;
-            --primary-light: rgba(99, 102, 241, 0.2);
-            --accent-hover: rgba(99, 102, 241, 0.4);
+            --bg-color: #191816;
+            --card-bg: #25231F;
+            --text-main: #F2EDE3;
+            --text-muted: #B8AE9D;
+            --border-color: #494238;
+            --input-bg: #1E1C19;
+            --primary: #E4BE68;
+            --primary-light: #3C3220;
+            --accent-hover: #514126;
             --danger: #f87171;
         }
 
