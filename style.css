@@ -382,3 +382,103 @@
             font-size: 0.75rem;
             color: var(--text-muted);
         }
+
+        /* Keep the tabbed layout on phones and smaller tablets. */
+        .converter-heading {
+            display: none;
+        }
+
+        .tab-content,
+        .result-value {
+            min-width: 0;
+        }
+
+        .copy-btn {
+            flex-shrink: 0;
+        }
+
+        .chip-display-header {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* Wide screens have room for both independent conversion tools. */
+        @media (min-width: 960px) {
+            body {
+                padding: 2rem;
+            }
+
+            header,
+            main {
+                max-width: 1120px;
+            }
+
+            header {
+                padding: 0.5rem 0 1.5rem;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            main {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1.5rem;
+                align-content: start;
+                align-items: stretch;
+            }
+
+            .banner {
+                grid-column: 1 / -1;
+                padding: 0 0 0.5rem;
+                font-size: 1rem;
+            }
+
+            .banner p {
+                max-width: 85ch;
+                line-height: 1.6;
+            }
+
+            .tab-container {
+                display: none;
+            }
+
+            .tab-content {
+                display: block;
+            }
+
+            .card {
+                height: 100%;
+                padding: 1.75rem;
+            }
+
+            .converter-heading {
+                display: block;
+                margin-bottom: 1.5rem;
+                font-size: 1.125rem;
+                color: var(--text-main);
+            }
+
+            .result-row {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+
+            .result-value {
+                flex: 1 1 100%;
+            }
+
+            .copy-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .palette-grid {
+                gap: 0.5rem;
+            }
+
+            .chip-btn {
+                min-height: 72px;
+            }
+        }

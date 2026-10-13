@@ -43,6 +43,7 @@
         <!-- Tab 1: Arabic to Roman -->
         <div id="arabicTab" class="tab-content active">
             <div class="card">
+                <h2 class="converter-heading">Arabic → Roman</h2>
                 <label for="arabicInput">Arabic Number (1 - 3999)</label>
                 <input type="number" id="arabicInput" class="font-mono-num" placeholder="e.g., 2026" min="1" max="3999" step="1" aria-describedby="arabicError" oninput="convertArabicToRoman()">
                 <p id="arabicError" role="status" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem;"></p>
@@ -60,6 +61,7 @@
         <!-- Tab 2: Roman Chips Builder to Arabic -->
         <div id="romanTab" class="tab-content">
             <div class="card">
+                <h2 class="converter-heading">Roman → Arabic</h2>
                 <div class="chip-display-header">
                     <label style="margin-bottom: 0;">Roman Numerals (Tap chips to build)</label>
                     <div class="chip-actions-group font-sans">
