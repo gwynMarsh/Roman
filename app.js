@@ -20,6 +20,7 @@ function toggleDarkMode() {
     const isDark = html.classList.contains('dark');
     document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
     document.querySelector('.theme-btn').setAttribute('aria-pressed', String(isDark));
+    document.querySelector('.theme-btn').setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
@@ -27,6 +28,7 @@ if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') 
     document.documentElement.classList.add('dark');
     document.getElementById('themeIcon').textContent = '☀️';
     document.querySelector('.theme-btn').setAttribute('aria-pressed', 'true');
+    document.querySelector('.theme-btn').setAttribute('aria-label', 'Switch to light theme');
 }
 
 // --- Copy to Clipboard Helper ---
