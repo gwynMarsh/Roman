@@ -18,7 +18,6 @@ function toggleDarkMode() {
     const html = document.documentElement;
     html.classList.toggle('dark');
     const isDark = html.classList.contains('dark');
-    document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
     document.querySelector('.theme-btn').setAttribute('aria-pressed', String(isDark));
     document.querySelector('.theme-btn').setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -26,22 +25,58 @@ function toggleDarkMode() {
 
 if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.classList.add('dark');
-    document.getElementById('themeIcon').textContent = '☀️';
     document.querySelector('.theme-btn').setAttribute('aria-pressed', 'true');
     document.querySelector('.theme-btn').setAttribute('aria-label', 'Switch to light theme');
 }
 
-// --- Copy to Clipboard Helper ---
+// --- Clipboard Controls ---
+// Update child nodes so feedback never removes the icon markup.
+const clipboardTimers = new WeakMap();
+
+function showClipboardFeedback(button, symbol, label, success = false) {
+    clearTimeout(clipboardTimers.get(button));
+    const icon = button.querySelector('.material-icon');
+    const text = button.querySelector('.button-label');
+    icon.querySelector('use').setAttribute('href', 'icons.svg#' + symbol);
+    icon.classList.toggle('is-success', success);
+    icon.classList.toggle('is-error', symbol === 'error');
+    text.textContent = label;
+    const isPaste = button.classList.contains('paste-btn');
+    clipboardTimers.set(button, setTimeout(() => {
+        icon.querySelector('use').setAttribute('href', 'icons.svg#' + (isPaste ? 'content_paste' : 'content_copy'));
+        icon.classList.remove('is-success', 'is-error');
+        text.textContent = isPaste ? 'Paste' : 'Copy';
+        clipboardTimers.delete(button);
+    }, success ? 1500 : 2500));
+}
+
 async function copyToClipboard(elementId, btnElement) {
     if (btnElement.disabled) return;
     const textToCopy = document.getElementById(elementId).textContent;
     try {
         await navigator.clipboard.writeText(textToCopy);
-        btnElement.textContent = "✅ Copied!";
-        setTimeout(() => { btnElement.textContent = "📋 Copy"; }, 1500);
+        showClipboardFeedback(btnElement, 'check', 'Copied!', true);
     } catch (error) {
-        btnElement.textContent = "Copy failed";
-        setTimeout(() => { btnElement.textContent = "📋 Copy"; }, 2000);
+        showClipboardFeedback(btnElement, 'error', 'Copy failed');
+    }
+}
+
+async function pasteArabic(btnElement) {
+    const errorEl = document.getElementById('arabicError');
+    try {
+        const raw = (await navigator.clipboard.readText()).trim();
+        const number = Number(raw);
+        if (!raw || !Number.isInteger(number) || number < 1 || number > 3999) {
+            errorEl.textContent = 'Paste a whole number from 1 to 3999.';
+            showClipboardFeedback(btnElement, 'error', 'Invalid number');
+            return;
+        }
+        document.getElementById('arabicInput').value = String(number);
+        convertArabicToRoman();
+        showClipboardFeedback(btnElement, 'check', 'Pasted!', true);
+    } catch (error) {
+        errorEl.textContent = 'Clipboard access unavailable. Paste directly into the number field.';
+        showClipboardFeedback(btnElement, 'error', 'Paste failed');
     }
 }
 

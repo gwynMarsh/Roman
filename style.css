@@ -13,6 +13,7 @@
             --primary-light: #F2E6C9;
             --accent-hover: #EFE5D1;
             --danger: #ef4444;
+            --success: #23763D;
         }
 
         .dark {
@@ -27,6 +28,7 @@
             --primary-light: #3C3220;
             --accent-hover: #514126;
             --danger: #f87171;
+            --success: #83D69B;
         }
 
         /* ==========================================================================
@@ -487,3 +489,55 @@
                 min-height: 72px;
             }
         }
+
+        /* Locally hosted Google Material Symbols Outlined SVGs. */
+        .material-icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            flex: 0 0 auto;
+            fill: currentColor;
+            vertical-align: middle;
+        }
+
+        .copy-btn, .backspace-btn, .clear-btn, .paste-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            line-height: 1.2;
+        }
+
+        :is(.copy-btn, .backspace-btn, .clear-btn, .paste-btn) .material-icon {
+            font-size: 18px;
+        }
+
+        .material-icon.is-success { color: var(--success); }
+        .material-icon.is-error { color: var(--danger); }
+
+        .theme-icon-light, .dark .theme-icon-dark { display: none; }
+        .dark .theme-icon-light { display: inline-block; }
+
+        .input-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-label-row label { margin-bottom: 0; }
+
+        .paste-btn {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.3rem 0.6rem;
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .paste-btn:hover { background: var(--border-color); }
