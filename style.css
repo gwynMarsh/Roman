@@ -193,7 +193,7 @@
             margin-bottom: 0.5rem;
         }
 
-        input[type="number"] {
+        input[type="number"], #romanInput {
             width: 100%;
             font-size: 1.5rem;
             font-weight: 600;
@@ -206,7 +206,7 @@
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input[type="number"]:focus {
+        input[type="number"]:focus, #romanInput:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 2px var(--primary-light);
         }
@@ -541,3 +541,52 @@
         }
 
         .paste-btn:hover { background: var(--border-color); }
+
+        .roman-entry-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #romanInput { min-width: 0; text-transform: uppercase; }
+        .roman-entry-row .paste-btn { flex-shrink: 0; }
+        .input-hint, .input-error {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .input-hint { color: var(--text-muted); }
+        .input-error { color: var(--danger); }
+        #chipDisplay { margin-top: 0.75rem; }
+        #romanResult { font-size: 1.75rem; }
+        #romanResult.is-invalid { color: var(--danger); font-size: 1.25rem; }
+
+        .breakdown-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1.25rem 0 0;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            min-height: 32px;
+        }
+
+        .breakdown-option input {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            accent-color: var(--primary);
+        }
+
+        .conversion-breakdown {
+            margin-top: 0.75rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            line-height: 1.8;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
