@@ -77,7 +77,7 @@ test('Roman warnings explain repetition and reject non-Roman input', () => {
 test('breakdown shows place-value groups and explains subtractive pairs', () => {
   const app = loadConverter();
   const explanation = app.run('romanBreakdown("MCMXCVIII")');
-  assert.equal(explanation, 'M + CM + XC + VIII\n= 1000 + 900 + 90 + 8\n= 1998\nCM = 1000 − 100 = 900\nXC = 100 − 10 = 90');
+  assert.equal(explanation, 'M + CM + XC + VIII\n= 1000 + 900 + 90 + 8\n= 1998\nCM = 1000 − 100 = 900\nXC = 100 − 10 = 90\nVIII = 5 + (1 × 3) = 8');
   assert.equal(app.run('romanBreakdown("IIII")'), '');
   assert.equal(app.run('romanBreakdown("")'), '');
 });
@@ -187,4 +187,24 @@ test('Roman chip builder disables copying for invalid values and caps input at 1
   assert.equal(app.run('currentChips.length'), 15);
   app.run('clearChips()');
   assert.equal(app.copyButtons.romanResult.disabled, true);
+});
+
+test('breakdown explains repeated and mixed additive groups', () => {
+  const app = loadConverter();
+  for (const [roman, expected] of [
+    ['II', 'II = 1 × 2 = 2'],
+    ['III', 'III = 1 × 3 = 3'],
+    ['CCC', 'CCC = 100 × 3 = 300'],
+    ['XXX', 'XXX = 10 × 3 = 30'],
+    ['MMM', 'MMM = 1000 × 3 = 3000'],
+    ['VIII', 'VIII = 5 + (1 × 3) = 8'],
+    ['LXXX', 'LXXX = 50 + (10 × 3) = 80'],
+    ['DCCC', 'DCCC = 500 + (100 × 3) = 800'],
+    ['IV', 'IV = 5 − 1 = 4'],
+    ['CM', 'CM = 1000 − 100 = 900']
+  ]) {
+    const breakdown = app.run('romanBreakdown(' + JSON.stringify(roman) + ')');
+    assert.ok(breakdown.split('\n').includes(expected), roman);
+  }
+  assert.equal(app.run('romanBreakdown("I")'), 'I\n= 1\n= 1');
 });

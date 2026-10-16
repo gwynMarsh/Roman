@@ -54,6 +54,15 @@ function romanBreakdown(input) {
         if (pairs[group.numeral]) {
             const [larger, smaller] = pairs[group.numeral];
             lines.push(group.numeral + ' = ' + larger + ' − ' + smaller + ' = ' + group.value);
+        } else if (group.numeral.length > 1) {
+            const runs = group.numeral.match(/M+|D|C+|L|X+|V|I+/g);
+            const expression = runs.map(run => {
+                const value = romanMap[run[0]];
+                if (run.length === 1) return String(value);
+                const multiplication = value + ' × ' + run.length;
+                return runs.length > 1 ? '(' + multiplication + ')' : multiplication;
+            }).join(' + ');
+            lines.push(group.numeral + ' = ' + expression + ' = ' + group.value);
         }
     }
     return lines.join('\n');
