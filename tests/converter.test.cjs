@@ -19,7 +19,7 @@ function loadApp() {
   assert.deepEqual(scripts, ['converter.js', 'app.js'], 'Conversion functions load before the UI');
   const copyButtons = { arabicResult: { disabled: true }, romanResult: { disabled: true } };
   const elements = {};
-  for (const id of ['arabicInput', 'arabicResult', 'arabicError', 'romanResult', 'chipDisplay', 'themeIcon']) {
+  for (const id of ['arabicInput', 'arabicResult', 'arabicError', 'romanInput', 'romanError', 'romanResult', 'chipDisplay', 'arabicBreakdownToggle', 'arabicBreakdown', 'romanBreakdownToggle', 'romanBreakdown']) {
     elements[id] = { value: '', textContent: '', style: {}, className: '',
       validity: { valid: true }, setAttribute() {}, appendChild() {},
       parentElement: { querySelector: () => copyButtons[id] } };
@@ -46,6 +46,93 @@ function loadApp() {
   }
   return { context, elements, copyButtons, run: expr => vm.runInContext(expr, context) };
 }
+
+test('Roman analysis groups sum correctly for every supported numeral', () => {
+  const app = loadConverter();
+  for (let n = 1; n <= 3999; n++) {
+    const result = app.run('analyzeRoman(arabicToRoman(' + n + '))');
+    assert.equal(result.valid, true);
+    assert.equal(result.value, n);
+    assert.equal(result.groups.reduce((sum, group) => sum + group.value, 0), n);
+  }
+  for (const n of [12.9, NaN, Infinity, -1, 0, 4000]) {
+    assert.equal(app.run('arabicToRoman(' + String(n) + ')'), 'Out of range (1-3999)');
+  }
+});
+
+test('Roman warnings explain repetition and reject non-Roman input', () => {
+  const app = loadConverter();
+  assert.match(app.run('analyzeRoman("IIII").error'), /IV for 4/);
+  assert.match(app.run('analyzeRoman("XXXX").error'), /XL for 40/);
+  assert.match(app.run('analyzeRoman("CCCC").error'), /CD for 400/);
+  assert.match(app.run('analyzeRoman("MMMM").error'), /3999/);
+  assert.match(app.run('analyzeRoman("VV").error'), /cannot repeat/);
+  assert.match(app.run('analyzeRoman("IC").error'), /subtractive pairs/);
+  for (const raw of ['ABC', 'X V', '<img>', 'M'.repeat(16)]) {
+    assert.equal(app.run('analyzeRoman(' + JSON.stringify(raw) + ').valid'), false);
+  }
+  assert.equal(app.run('analyzeRoman(" xiv ").value'), 14);
+});
+
+test('breakdown shows place-value groups and explains subtractive pairs', () => {
+  const app = loadConverter();
+  const explanation = app.run('romanBreakdown("MCMXCVIII")');
+  assert.equal(explanation, 'M + CM + XC + VIII\n= 1000 + 900 + 90 + 8\n= 1998\nCM = 1000 − 100 = 900\nXC = 100 − 10 = 90');
+  assert.equal(app.run('romanBreakdown("IIII")'), '');
+  assert.equal(app.run('romanBreakdown("")'), '');
+});
+
+test('typed Roman input, chips, deletion and clearing stay synchronized', () => {
+  const app = loadApp();
+  app.elements.romanInput.value = ' xiv ';
+  app.run('convertRomanInput()');
+  assert.equal(app.elements.romanResult.textContent, 14);
+  assert.equal(app.copyButtons.romanResult.disabled, false);
+  app.run('appendRoman("I")');
+  assert.equal(app.elements.romanInput.value, 'XIVI');
+  assert.equal(app.copyButtons.romanResult.disabled, true);
+  app.run('backspaceRoman()');
+  assert.equal(app.elements.romanInput.value, 'XIV');
+  assert.equal(app.elements.romanResult.textContent, 14);
+  app.elements.romanInput.value = 'IIII';
+  app.run('convertRomanInput()');
+  assert.match(app.elements.romanError.textContent, /IV for 4/);
+  app.run('clearChips()');
+  assert.equal(app.elements.romanInput.value, '');
+  assert.equal(app.elements.romanError.textContent, '');
+  assert.equal(app.elements.romanResult.className, 'result-value font-mono-num');
+  assert.equal(app.elements.romanResult.textContent, '0');
+  assert.equal(app.copyButtons.romanResult.disabled, true);
+});
+
+test('breakdowns start hidden, follow input, and clear for invalid or empty values', () => {
+  const app = loadApp();
+  assert.equal(app.elements.arabicBreakdown.hidden, true);
+  app.elements.arabicBreakdownToggle.checked = true;
+  app.run('updateBreakdown("arabic")');
+  assert.match(app.elements.arabicBreakdown.textContent, /= 1888/);
+  assert.equal(app.elements.arabicBreakdown.hidden, false);
+  app.elements.arabicInput.value = '4000';
+  app.run('convertArabicToRoman()');
+  assert.equal(app.elements.arabicBreakdown.hidden, true);
+  app.elements.romanInput.value = 'IX';
+  app.run('convertRomanInput()');
+  assert.equal(app.elements.romanBreakdown.hidden, true);
+  app.elements.romanBreakdownToggle.checked = true;
+  app.run('updateBreakdown("roman")');
+  assert.match(app.elements.romanBreakdown.textContent, /IX = 10 − 1 = 9/);
+  assert.equal(app.elements.romanBreakdown.hidden, false);
+  app.elements.romanInput.value = 'IIII';
+  app.run('convertRomanInput()');
+  assert.equal(app.elements.romanBreakdown.hidden, true);
+  assert.equal(app.elements.romanBreakdown.textContent, '');
+  app.elements.romanInput.value = 'IV';
+  app.run('convertRomanInput()');
+  assert.equal(app.elements.romanBreakdown.hidden, false);
+  app.elements.romanBreakdownToggle.checked = false;
+  app.run('updateBreakdown("roman")');
+  assert.equal(app.elements.romanBreakdown.hidden, true);
+});
 
 test('every number 1–3999 round-trips and yields a canonical Roman numeral', () => {
   const app = loadConverter();

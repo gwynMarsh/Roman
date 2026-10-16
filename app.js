@@ -84,6 +84,36 @@ function setCopyEnabled(resultId, enabled) {
     document.getElementById(resultId).parentElement.querySelector('.copy-btn').disabled = !enabled;
 }
 
+function updateBreakdown(direction) {
+    const toggle = document.getElementById(direction + 'BreakdownToggle');
+    const panel = document.getElementById(direction + 'Breakdown');
+    const numeral = direction === 'arabic'
+        ? document.getElementById('arabicResult').textContent
+        : currentChips.join('');
+    const explanation = toggle.checked ? romanBreakdown(numeral) : '';
+    panel.textContent = explanation;
+    panel.hidden = !explanation;
+}
+
+async function pasteRoman(btnElement) {
+    try {
+        const raw = await navigator.clipboard.readText();
+        document.getElementById('romanInput').value = raw.trim().toUpperCase();
+        convertRomanInput();
+        const valid = analyzeRoman(raw).valid;
+        showClipboardFeedback(btnElement, valid ? 'check' : 'error', valid ? 'Pasted!' : 'Invalid numeral', valid);
+    } catch (error) {
+        document.getElementById('romanError').textContent = 'Clipboard access unavailable. Paste directly into the Roman numeral field.';
+        showClipboardFeedback(btnElement, 'error', 'Paste failed');
+    }
+}
+
+function convertRomanInput() {
+    const raw = document.getElementById('romanInput').value;
+    currentChips = Array.from(raw.trim().toUpperCase());
+    updateChipDisplay(false);
+}
+
 // --- Roman Chip Builder State ---
 let currentChips = [];
 
@@ -99,9 +129,11 @@ function convertArabicToRoman() {
     errorEl.textContent = raw && !valid ? 'Enter a whole number from 1 to 3999.' : '';
     input.setAttribute('aria-invalid', String(raw !== '' && !valid));
     setCopyEnabled('arabicResult', valid);
+    updateBreakdown('arabic');
 }
 
 function appendRoman(char) {
+    if (!/^[MDCLXVI]$/.test(char)) return;
     if (currentChips.length >= 15) return;
     currentChips.push(char);
     updateChipDisplay();
@@ -117,40 +149,34 @@ function clearChips() {
     updateChipDisplay();
 }
 
-function updateChipDisplay() {
+function updateChipDisplay(syncInput = true) {
+    const numeral = currentChips.join('');
+    const input = document.getElementById('romanInput');
+    if (syncInput) input.value = numeral;
+    const result = analyzeRoman(numeral);
     const container = document.getElementById('chipDisplay');
     container.innerHTML = '';
-    
-    if (currentChips.length === 0) {
+
+    if (!currentChips.length) {
         container.innerHTML = '<span class="placeholder-text font-sans" id="placeholderText">Tap chips below...</span>';
-        document.getElementById('romanResult').textContent = '0';
-        setCopyEnabled('romanResult', false);
-        return;
-    }
-
-    currentChips.forEach((char) => {
-        const chip = document.createElement('span');
-        chip.className = 'chip-item font-mono-num';
-        chip.textContent = char;
-        container.appendChild(chip);
-    });
-
-    const romanString = currentChips.join('');
-    const result = romanToArab(romanString);
-    
-    const resultEl = document.getElementById('romanResult');
-    resultEl.textContent = result;
-    setCopyEnabled("romanResult", typeof result === "number" && result > 0);
-    
-    if (result === "Invalid Roman Numeral") {
-        resultEl.style.color = "var(--danger)";
-        resultEl.style.fontSize = "1.25rem";
-        resultEl.className = "result-value font-sans"; 
     } else {
-        resultEl.style.color = "var(--primary)";
-        resultEl.style.fontSize = "1.75rem";
-        resultEl.className = "result-value font-mono-num"; 
+        // Invalid text stays in the editable field; only Roman letters become chips.
+        currentChips.filter(char => /^[MDCLXVI]$/.test(char)).slice(0, 15).forEach(char => {
+            const chip = document.createElement('span');
+            chip.className = 'chip-item font-mono-num';
+            chip.textContent = char;
+            container.appendChild(chip);
+        });
     }
+
+    const resultEl = document.getElementById('romanResult');
+    resultEl.textContent = result.valid ? result.value : (numeral ? 'Invalid Roman Numeral' : '0');
+    resultEl.className = result.valid || !numeral
+        ? 'result-value font-mono-num' : 'result-value font-sans is-invalid';
+    document.getElementById('romanError').textContent = result.error;
+    input.setAttribute('aria-invalid', String(Boolean(numeral) && !result.valid));
+    setCopyEnabled('romanResult', result.valid);
+    updateBreakdown('roman');
 }
 
 // Run default state setup on load

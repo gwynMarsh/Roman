@@ -56,6 +56,12 @@
                         <button onclick="copyToClipboard('arabicResult', this)" class="copy-btn font-sans" disabled><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#content_copy"></use></svg><span class="button-label" aria-live="polite">Copy</span></button>
                     </div>
                 </div>
+
+                <label class="breakdown-option">
+                    <input type="checkbox" id="arabicBreakdownToggle" aria-controls="arabicBreakdown" onchange="updateBreakdown('arabic')">
+                    <span>Show conversion breakdown</span>
+                </label>
+                <div id="arabicBreakdown" class="conversion-breakdown font-mono-num" role="status" hidden></div>
             </div>
         </div>
 
@@ -64,12 +70,19 @@
             <div class="card">
                 <h2 class="converter-heading">Roman → Arabic</h2>
                 <div class="chip-display-header">
-                    <label style="margin-bottom: 0;">Roman Numerals (Tap chips to build)</label>
+                    <label for="romanInput" style="margin-bottom: 0;">Roman Numerals</label>
                     <div class="chip-actions-group font-sans">
                         <button onclick="backspaceRoman()" class="backspace-btn"><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#backspace"></use></svg><span>Delete</span></button>
                         <button onclick="clearChips()" class="clear-btn"><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#delete"></use></svg><span>Clear</span></button>
                     </div>
                 </div>
+
+                <div class="roman-entry-row">
+                    <input type="text" id="romanInput" class="font-mono-num" placeholder="e.g., MCMXCVIII" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="romanHint romanError" oninput="convertRomanInput()">
+                    <button type="button" class="paste-btn font-sans" onclick="pasteRoman(this)"><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#content_paste"></use></svg><span class="button-label" aria-live="polite">Paste</span></button>
+                </div>
+                <p id="romanHint" class="input-hint">Type or paste a numeral, or build one with the chips below.</p>
+                <p id="romanError" class="input-error" role="status"></p>
 
                 <!-- Roman Chips Input Area -->
                 <div id="chipDisplay" class="chip-container">
@@ -90,10 +103,16 @@
                 <div style="margin-top: 1rem;">
                     <span class="result-label">Converted Value:</span>
                     <div class="result-row">
-                        <div id="romanResult" class="result-value font-mono-num" style="font-size: 1.75rem;" aria-live="polite">0</div>
+                        <div id="romanResult" class="result-value font-mono-num" aria-live="polite">0</div>
                         <button onclick="copyToClipboard('romanResult', this)" class="copy-btn font-sans" disabled><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#content_copy"></use></svg><span class="button-label" aria-live="polite">Copy</span></button>
                     </div>
                 </div>
+
+                <label class="breakdown-option">
+                    <input type="checkbox" id="romanBreakdownToggle" aria-controls="romanBreakdown" onchange="updateBreakdown('roman')">
+                    <span>Show conversion breakdown</span>
+                </label>
+                <div id="romanBreakdown" class="conversion-breakdown font-mono-num" role="status" hidden></div>
             </div>
         </div>
 

@@ -33,12 +33,20 @@ function load(clipboard) {
   const elements = {
     arabicInput: { value: '', validity: { valid: true }, setAttribute() {} },
     arabicResult: { textContent: '', parentElement: { querySelector: () => copy } },
-    arabicError: { textContent: '' }
+    arabicError: { textContent: '' },
+    arabicBreakdownToggle: { checked: false },
+    arabicBreakdown: {},
+    romanInput: { value: '', setAttribute() {} },
+    romanError: { textContent: '' },
+    romanResult: { textContent: '', parentElement: { querySelector: () => button() } },
+    romanBreakdownToggle: { checked: false },
+    romanBreakdown: {},
+    chipDisplay: { innerHTML: '', appendChild() {} }
   };
   const timers = new Map();
   let timerId = 0;
   const context = vm.createContext({
-    document: { getElementById: id => elements[id] },
+    document: { getElementById: id => elements[id], createElement: () => ({}) },
     localStorage: { getItem: () => 'light' },
     navigator: { clipboard },
     setTimeout(callback) { timers.set(++timerId, callback); return timerId; },
@@ -122,4 +130,35 @@ test('unavailable clipboard access provides manual paste guidance', async () => 
   await app.run('pasteArabic(btn)');
   assert.equal(app.context.btn.label.textContent, 'Paste failed');
   assert.match(app.elements.arabicError.textContent, /Paste directly/);
+});
+
+test('Roman paste accepts lowercase and whitespace and synchronizes the result', async () => {
+  const app = load({ readText: async () => ' mcmxcviii\n' });
+  app.context.btn = button(true);
+  await app.run('pasteRoman(btn)');
+  assert.equal(app.elements.romanInput.value, 'MCMXCVIII');
+  assert.equal(app.elements.romanResult.textContent, 1998);
+  assert.equal(app.context.btn.label.textContent, 'Pasted!');
+  app.reset();
+  assert.equal(app.context.btn.use.href, 'icons.svg#content_paste');
+});
+
+test('invalid Roman paste remains editable with explanatory feedback', async () => {
+  const app = load({ readText: async () => 'IIII' });
+  app.context.btn = button(true);
+  await app.run('pasteRoman(btn)');
+  assert.equal(app.elements.romanInput.value, 'IIII');
+  assert.equal(app.elements.romanResult.textContent, 'Invalid Roman Numeral');
+  assert.match(app.elements.romanError.textContent, /IV for 4/);
+  assert.equal(app.context.btn.label.textContent, 'Invalid numeral');
+});
+
+test('denied Roman paste offers a manual alternative without replacing input', async () => {
+  const app = load({ readText: async () => { throw Error('denied'); } });
+  app.elements.romanInput.value = 'XIV';
+  app.context.btn = button(true);
+  await app.run('pasteRoman(btn)');
+  assert.equal(app.elements.romanInput.value, 'XIV');
+  assert.match(app.elements.romanError.textContent, /Paste directly/);
+  assert.equal(app.context.btn.label.textContent, 'Paste failed');
 });
