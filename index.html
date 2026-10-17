@@ -32,6 +32,14 @@
             <p>Great for decoding legal acts (e.g., Act <em>XLIV</em>), movie/book publication years (e.g., MCMXCVIII = 1998), and birth/death dates on historical headstones.</p>
         </div>
 
+        <div class="numeral-mode">
+            <label class="breakdown-option mode-option">
+                <input type="checkbox" id="extendedMode" aria-describedby="extendedHint" onchange="changeNumeralMode()">
+                <span>Extended numerals</span>
+            </label>
+            <p id="extendedHint" class="input-hint" hidden>Range: 1–3,999,999. An overline means ×1,000: I̅V̅ = 4,000. Copy preserves the overlines; Copy plain uses (IV). Parentheses are also accepted when typing or pasting.</p>
+        </div>
+
         <!-- Tab Navigation Bar -->
         <nav class="tab-container" aria-label="Conversion direction">
             <button class="tab-btn active" onclick="switchTab('arabicTab', this)">15 → XV</button>
@@ -43,7 +51,7 @@
             <div class="card">
                 <h2 class="converter-heading">Arabic → Roman</h2>
                 <div class="input-label-row">
-                    <label for="arabicInput">Arabic Number (1 - 3999)</label>
+                    <label id="arabicLabel" for="arabicInput">Arabic Number (1 - 3999)</label>
                     <button type="button" class="paste-btn font-sans" onclick="pasteArabic(this)"><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#content_paste"></use></svg><span class="button-label" aria-live="polite">Paste</span></button>
                 </div>
                 <input type="number" id="arabicInput" class="font-mono-num" placeholder="e.g., 2026" min="1" max="3999" step="1" aria-describedby="arabicError" oninput="convertArabicToRoman()">
@@ -54,6 +62,7 @@
                     <div class="result-row">
                         <div id="arabicResult" class="result-value font-mono-num" aria-live="polite">MDCCCLXXXVIII</div>
                         <button onclick="copyToClipboard('arabicResult', this)" class="copy-btn font-sans" disabled><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#content_copy"></use></svg><span class="button-label" aria-live="polite">Copy</span></button>
+                        <button id="copyPlainButton" type="button" onclick="copyToClipboard('arabicResult', this, true)" class="copy-btn font-sans" data-label="Copy plain" hidden><svg class="material-icon" aria-hidden="true" focusable="false"><use href="icons.svg#content_copy"></use></svg><span class="button-label" aria-live="polite">Copy plain</span></button>
                     </div>
                 </div>
 
@@ -89,15 +98,20 @@
                     <span class="placeholder-text font-sans" id="placeholderText">Tap chips below...</span>
                 </div>
 
+                <label id="overlineChipControl" class="breakdown-option overline-chip-option" hidden>
+                    <input type="checkbox" id="overlineChips" onchange="updateChipPalette()">
+                    <span>Overline chips (×1,000)</span>
+                </label>
+
                 <!-- Chips Palette -->
                 <div class="palette-grid">
-                    <button onclick="appendRoman('M')" class="chip-btn font-mono-num">M <span class="chip-sub">1000</span></button>
-                    <button onclick="appendRoman('D')" class="chip-btn font-mono-num">D <span class="chip-sub">500</span></button>
-                    <button onclick="appendRoman('C')" class="chip-btn font-mono-num">C <span class="chip-sub">100</span></button>
-                    <button onclick="appendRoman('L')" class="chip-btn font-mono-num">L <span class="chip-sub">50</span></button>
-                    <button onclick="appendRoman('X')" class="chip-btn font-mono-num">X <span class="chip-sub">10</span></button>
-                    <button onclick="appendRoman('V')" class="chip-btn font-mono-num">V <span class="chip-sub">5</span></button>
-                    <button onclick="appendRoman('I')" class="chip-btn font-mono-num">I <span class="chip-sub">1</span></button>
+                    <button onclick="appendRoman('M')" class="chip-btn font-mono-num" data-roman="M"><span class="chip-letter">M</span> <span class="chip-sub">1000</span></button>
+                    <button onclick="appendRoman('D')" class="chip-btn font-mono-num" data-roman="D"><span class="chip-letter">D</span> <span class="chip-sub">500</span></button>
+                    <button onclick="appendRoman('C')" class="chip-btn font-mono-num" data-roman="C"><span class="chip-letter">C</span> <span class="chip-sub">100</span></button>
+                    <button onclick="appendRoman('L')" class="chip-btn font-mono-num" data-roman="L"><span class="chip-letter">L</span> <span class="chip-sub">50</span></button>
+                    <button onclick="appendRoman('X')" class="chip-btn font-mono-num" data-roman="X"><span class="chip-letter">X</span> <span class="chip-sub">10</span></button>
+                    <button onclick="appendRoman('V')" class="chip-btn font-mono-num" data-roman="V"><span class="chip-letter">V</span> <span class="chip-sub">5</span></button>
+                    <button onclick="appendRoman('I')" class="chip-btn font-mono-num" data-roman="I"><span class="chip-letter">I</span> <span class="chip-sub">1</span></button>
                 </div>
                 
                 <div style="margin-top: 1rem;">

@@ -590,3 +590,11 @@
             white-space: pre-line;
             overflow-wrap: anywhere;
         }
+
+        .numeral-mode { grid-column: 1 / -1; }
+        .mode-option { margin-top: 0; }
+        .overline-chip-option { margin: 0 0 0.75rem; }
+        .chip-letter { line-height: 1.5; }
+        #arabicResult { line-height: 1.5; }
+        /* Flex styling must never override the HTML hidden attribute. */
+        [hidden] { display: none !important; }
