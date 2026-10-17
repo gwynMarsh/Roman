@@ -19,7 +19,7 @@ function loadApp() {
   assert.deepEqual(scripts, ['converter.js', 'app.js'], 'Conversion functions load before the UI');
   const copyButtons = { arabicResult: { disabled: true }, romanResult: { disabled: true } };
   const elements = {};
-  for (const id of ['arabicInput', 'arabicResult', 'arabicError', 'romanInput', 'romanError', 'romanResult', 'chipDisplay', 'arabicBreakdownToggle', 'arabicBreakdown', 'romanBreakdownToggle', 'romanBreakdown']) {
+  for (const id of ['arabicInput', 'arabicLabel', 'arabicResult', 'arabicError', 'romanInput', 'romanError', 'romanResult', 'chipDisplay', 'arabicBreakdownToggle', 'arabicBreakdown', 'romanBreakdownToggle', 'romanBreakdown', 'extendedMode', 'extendedHint', 'overlineChips', 'overlineChipControl', 'copyPlainButton']) {
     elements[id] = { value: '', textContent: '', style: {}, className: '',
       validity: { valid: true }, setAttribute() {}, appendChild() {},
       parentElement: { querySelector: () => copyButtons[id] } };
@@ -34,6 +34,7 @@ function loadApp() {
     getElementById: id => elements[id],
     documentElement: { classList: { add() {}, contains: () => false, toggle() {} } },
     querySelector: () => ({ setAttribute() {} }),
+    querySelectorAll: () => [],
     createElement: () => ({ textContent: '', className: '' })
   };
   const context = vm.createContext({
@@ -207,4 +208,93 @@ test('breakdown explains repeated and mixed additive groups', () => {
     assert.ok(breakdown.split('\n').includes(expected), roman);
   }
   assert.equal(app.run('romanBreakdown("I")'), 'I\n= 1\n= 1');
+});
+
+test('extended conversion covers every thousands group with representative remainders', () => {
+  const context = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'converter.js'), 'utf8'), context);
+  for (let thousands = 1; thousands <= 3999; thousands++) {
+    for (const remainder of [0, 1, 4, 99, 888, 999]) {
+      const value = thousands * 1000 + remainder;
+      const roman = context.arabicToRoman(value, true);
+      assert.equal(context.romanToArab(roman, true), value, roman);
+      assert.equal(context.romanToArab(context.romanPlainText(roman), true), value);
+      const analysis = context.analyzeRoman(roman, true);
+      assert.equal(analysis.groups.reduce((total, group) => total + group.value, 0), value);
+    }
+  }
+});
+
+test('extended boundaries, Unicode overlines and plain-text notation are explicit', () => {
+  const app = loadConverter();
+  assert.equal(app.run('arabicToRoman(3999, true)'), 'MMMCMXCIX');
+  assert.equal(app.run('arabicToRoman(4000, true)'), 'I̅V̅');
+  assert.equal(app.run('romanToArab("I̅V̅XII", true)'), 4012);
+  assert.equal(app.run('romanToArab(" (iv)xii ", true)'), 4012);
+  assert.equal(app.run('romanPlainText("I̅V̅XII")'), '(IV)XII');
+  assert.equal(app.run('romanToArab("M̅", true)'), 1000000);
+  assert.equal(app.run('romanToArab("(I)IX", true)'), 1009);
+  assert.equal(app.run('arabicToRoman(4000000, true)'), 'Out of range (1-3999999)');
+  for (const raw of ['I̅V̅', '(IV)XII']) {
+    assert.equal(app.run('analyzeRoman(' + JSON.stringify(raw) + ').valid'), false);
+    assert.match(app.run('analyzeRoman(' + JSON.stringify(raw) + ').error'), /Enable Extended/);
+  }
+  for (const raw of ['̅IV', 'I̅̅V̅', 'IV̅', 'I̅VM̅', '(IV)(X)', '(MMMM)', '(IV)M', 'I̅V̅IIII', '(IIII)', '(IV)ABC']) {
+    assert.equal(app.run('analyzeRoman(' + JSON.stringify(raw) + ', true).valid'), false, raw);
+  }
+});
+
+test('extended breakdown explains multiplication, subtraction and repeated letters', () => {
+  const app = loadConverter();
+  const result = app.run('romanBreakdown("I̅V̅XII", true)');
+  assert.match(result, /I̅V̅ = \(5 − 1\) × 1000 = 4000/);
+  assert.match(result, /II = 1 × 2 = 2/);
+  assert.match(result, /= 4012/);
+  assert.match(app.run('romanBreakdown("(CCC)", true)'), /100 × 3/);
+  assert.equal(app.run('romanBreakdown("I̅V̅", false)'), '');
+});
+
+test('mode switching updates ranges, results and breakdowns without discarding input', () => {
+  const app = loadApp();
+  app.elements.arabicInput.value = '4012';
+  app.elements.romanInput.value = '(IV)XII';
+  app.elements.arabicBreakdownToggle.checked = true;
+  app.elements.romanBreakdownToggle.checked = true;
+  app.elements.extendedMode.checked = true;
+  app.run('changeNumeralMode()');
+  assert.equal(app.elements.arabicInput.max, '3999999');
+  assert.match(app.elements.arabicLabel.textContent, /3,999,999/);
+  assert.equal(app.elements.arabicResult.textContent, 'I̅V̅XII');
+  assert.equal(app.elements.romanResult.textContent, 4012);
+  assert.equal(app.elements.romanInput.value, '(IV)XII');
+  assert.equal(app.elements.overlineChipControl.hidden, false);
+  assert.equal(app.elements.copyPlainButton.hidden, false);
+  assert.equal(app.elements.arabicBreakdown.hidden, false);
+  app.elements.extendedMode.checked = false;
+  app.run('changeNumeralMode()');
+  assert.equal(app.elements.arabicInput.max, '3999');
+  assert.equal(app.elements.arabicInput.value, '4012');
+  assert.equal(app.copyButtons.arabicResult.disabled, true);
+  assert.equal(app.copyButtons.romanResult.disabled, true);
+  assert.equal(app.elements.copyPlainButton.hidden, true);
+  assert.equal(app.elements.arabicBreakdown.hidden, true);
+  assert.equal(app.elements.romanBreakdown.hidden, true);
+});
+
+test('overlined chips remain whole symbols when added and deleted', () => {
+  const app = loadApp();
+  app.elements.extendedMode.checked = true;
+  app.elements.overlineChips.checked = true;
+  app.run('appendRoman("I"); appendRoman("V")');
+  assert.equal(app.elements.romanInput.value, 'I̅V̅');
+  assert.equal(app.elements.romanResult.textContent, 4000);
+  assert.equal(app.run('currentChips.length'), 2);
+  app.elements.overlineChips.checked = false;
+  app.run('appendRoman("X"); appendRoman("I"); appendRoman("I")');
+  assert.equal(app.elements.romanResult.textContent, 4012);
+  app.run('backspaceRoman(); backspaceRoman(); backspaceRoman(); backspaceRoman()');
+  assert.equal(app.elements.romanInput.value, 'I̅');
+  assert.equal(app.elements.romanResult.textContent, 1000);
+  app.run('clearChips()');
+  assert.equal(app.elements.romanResult.textContent, '0');
 });

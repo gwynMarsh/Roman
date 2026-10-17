@@ -45,14 +45,15 @@ function showClipboardFeedback(button, symbol, label, success = false) {
     clipboardTimers.set(button, setTimeout(() => {
         icon.querySelector('use').setAttribute('href', 'icons.svg#' + (isPaste ? 'content_paste' : 'content_copy'));
         icon.classList.remove('is-success', 'is-error');
-        text.textContent = isPaste ? 'Paste' : 'Copy';
+        text.textContent = isPaste ? 'Paste' : (button.dataset?.label || 'Copy');
         clipboardTimers.delete(button);
     }, success ? 1500 : 2500));
 }
 
-async function copyToClipboard(elementId, btnElement) {
+async function copyToClipboard(elementId, btnElement, plain = false) {
     if (btnElement.disabled) return;
-    const textToCopy = document.getElementById(elementId).textContent;
+    const resultText = document.getElementById(elementId).textContent;
+    const textToCopy = plain ? romanPlainText(resultText) : resultText;
     try {
         await navigator.clipboard.writeText(textToCopy);
         showClipboardFeedback(btnElement, 'check', 'Copied!', true);
@@ -66,8 +67,8 @@ async function pasteArabic(btnElement) {
     try {
         const raw = (await navigator.clipboard.readText()).trim();
         const number = Number(raw);
-        if (!raw || !Number.isInteger(number) || number < 1 || number > 3999) {
-            errorEl.textContent = 'Paste a whole number from 1 to 3999.';
+        if (!raw || !Number.isInteger(number) || number < 1 || number > maximumArabic()) {
+            errorEl.textContent = 'Paste a whole number from 1 to ' + maximumArabic().toLocaleString('en-US') + '.';
             showClipboardFeedback(btnElement, 'error', 'Invalid number');
             return;
         }
@@ -90,7 +91,7 @@ function updateBreakdown(direction) {
     const numeral = direction === 'arabic'
         ? document.getElementById('arabicResult').textContent
         : currentChips.join('');
-    const explanation = toggle.checked ? romanBreakdown(numeral) : '';
+    const explanation = toggle.checked ? romanBreakdown(numeral, isExtendedMode()) : '';
     panel.textContent = explanation;
     panel.hidden = !explanation;
 }
@@ -100,7 +101,7 @@ async function pasteRoman(btnElement) {
         const raw = await navigator.clipboard.readText();
         document.getElementById('romanInput').value = raw.trim().toUpperCase();
         convertRomanInput();
-        const valid = analyzeRoman(raw).valid;
+        const valid = analyzeRoman(raw, isExtendedMode()).valid;
         showClipboardFeedback(btnElement, valid ? 'check' : 'error', valid ? 'Pasted!' : 'Invalid numeral', valid);
     } catch (error) {
         document.getElementById('romanError').textContent = 'Clipboard access unavailable. Paste directly into the Roman numeral field.';
@@ -110,8 +111,39 @@ async function pasteRoman(btnElement) {
 
 function convertRomanInput() {
     const raw = document.getElementById('romanInput').value;
-    currentChips = Array.from(raw.trim().toUpperCase());
+    const analysis = analyzeRoman(raw, isExtendedMode());
+    currentChips = splitRomanSymbols(analysis.valid ? analysis.normalized : raw.trim().toUpperCase());
     updateChipDisplay(false);
+}
+
+// --- Numeral Mode ---
+function isExtendedMode() {
+    return document.getElementById('extendedMode')?.checked === true;
+}
+
+function maximumArabic() {
+    return isExtendedMode() ? 3999999 : 3999;
+}
+
+function changeNumeralMode() {
+    const enabled = isExtendedMode();
+    document.getElementById('arabicInput').max = String(maximumArabic());
+    document.getElementById('arabicLabel').textContent = 'Arabic Number (1 - ' + maximumArabic().toLocaleString('en-US') + ')';
+    document.getElementById('extendedHint').hidden = !enabled;
+    document.getElementById('overlineChipControl').hidden = !enabled;
+    if (!enabled) document.getElementById('overlineChips').checked = false;
+    updateChipPalette();
+    convertArabicToRoman();
+    convertRomanInput();
+}
+
+function updateChipPalette() {
+    const barred = isExtendedMode() && document.getElementById('overlineChips').checked;
+    document.querySelectorAll('.chip-btn').forEach(button => {
+        const letter = button.dataset.roman;
+        button.querySelector('.chip-letter').textContent = barred ? overlineRoman(letter) : letter;
+        button.querySelector('.chip-sub').textContent = (romanMap[letter] * (barred ? 1000 : 1)).toLocaleString('en-US');
+    });
 }
 
 // --- Roman Chip Builder State ---
@@ -124,18 +156,21 @@ function convertArabicToRoman() {
     const num = Number(raw);
     const resEl = document.getElementById('arabicResult');
     const errorEl = document.getElementById('arabicError');
-    const valid = raw !== '' && Number.isInteger(num) && num >= 1 && num <= 3999 && input.validity.valid;
-    resEl.textContent = valid ? arabicToRoman(num) : '---';
-    errorEl.textContent = raw && !valid ? 'Enter a whole number from 1 to 3999.' : '';
+    const valid = raw !== '' && Number.isInteger(num) && num >= 1 && num <= maximumArabic() && input.validity.valid;
+    resEl.textContent = valid ? arabicToRoman(num, isExtendedMode()) : '---';
+    errorEl.textContent = raw && !valid ? 'Enter a whole number from 1 to ' + maximumArabic().toLocaleString('en-US') + '.' : '';
     input.setAttribute('aria-invalid', String(raw !== '' && !valid));
     setCopyEnabled('arabicResult', valid);
     updateBreakdown('arabic');
+    const plainButton = document.getElementById('copyPlainButton');
+    if (plainButton) plainButton.hidden = !valid || !resEl.textContent.includes('\u0305');
 }
 
 function appendRoman(char) {
     if (!/^[MDCLXVI]$/.test(char)) return;
-    if (currentChips.length >= 15) return;
-    currentChips.push(char);
+    if (currentChips.length >= (isExtendedMode() ? 27 : 15)) return;
+    const barred = isExtendedMode() && document.getElementById('overlineChips').checked;
+    currentChips.push(barred ? char + '\u0305' : char);
     updateChipDisplay();
 }
 
@@ -153,7 +188,7 @@ function updateChipDisplay(syncInput = true) {
     const numeral = currentChips.join('');
     const input = document.getElementById('romanInput');
     if (syncInput) input.value = numeral;
-    const result = analyzeRoman(numeral);
+    const result = analyzeRoman(numeral, isExtendedMode());
     const container = document.getElementById('chipDisplay');
     container.innerHTML = '';
 
@@ -161,7 +196,7 @@ function updateChipDisplay(syncInput = true) {
         container.innerHTML = '<span class="placeholder-text font-sans" id="placeholderText">Tap chips below...</span>';
     } else {
         // Invalid text stays in the editable field; only Roman letters become chips.
-        currentChips.filter(char => /^[MDCLXVI]$/.test(char)).slice(0, 15).forEach(char => {
+        currentChips.filter(char => /^[MDCLXVI]\u0305?$/.test(char)).slice(0, isExtendedMode() ? 27 : 15).forEach(char => {
             const chip = document.createElement('span');
             chip.className = 'chip-item font-mono-num';
             chip.textContent = char;

@@ -162,3 +162,37 @@ test('denied Roman paste offers a manual alternative without replacing input', a
   assert.match(app.elements.romanError.textContent, /Paste directly/);
   assert.equal(app.context.btn.label.textContent, 'Paste failed');
 });
+
+test('copy preserves Unicode overlines and plain copy restores its own label', async () => {
+  let written;
+  const app = load({ writeText: async text => { written = text; } });
+  app.elements.arabicResult.textContent = 'I̅V̅XII';
+  app.context.btn = app.copy;
+  await app.run('copyToClipboard("arabicResult", btn)');
+  assert.equal(written, 'I̅V̅XII');
+  app.copy.dataset = { label: 'Copy plain' };
+  await app.run('copyToClipboard("arabicResult", btn, true)');
+  assert.equal(written, '(IV)XII');
+  app.reset();
+  assert.equal(app.copy.label.textContent, 'Copy plain');
+});
+
+test('extended clipboard input shares the selected conversion mode', async () => {
+  let clipboardText = '3999999';
+  const app = load({ readText: async () => clipboardText });
+  app.elements.extendedMode = { checked: true };
+  app.context.btn = button(true);
+  await app.run('pasteArabic(btn)');
+  assert.equal(app.elements.arabicInput.value, '3999999');
+  assert.equal(app.context.btn.label.textContent, 'Pasted!');
+  clipboardText = '(IV)XII';
+  await app.run('pasteRoman(btn)');
+  assert.equal(app.elements.romanResult.textContent, 4012);
+  clipboardText = 'I̅V̅XII';
+  await app.run('pasteRoman(btn)');
+  assert.equal(app.elements.romanResult.textContent, 4012);
+  clipboardText = '4000000';
+  await app.run('pasteArabic(btn)');
+  assert.equal(app.context.btn.label.textContent, 'Invalid number');
+  assert.equal(app.elements.arabicInput.value, '3999999');
+});
